@@ -21,19 +21,19 @@ if (empty($update) || !isRequestIPValid()) {
 
 $update = json_decode($update, true);
 
-if(isset($update['channel_post'])) {
+if (isset($update['channel_post'])) {
     $message = $update['channel_post'];
-    if(isset($message['text'])) {
+    if (isset($message['text'])) {
         $text = $message['text'];
         $new_post = [
-            'post_title' => strtok($text, "\n"),
+            'post_title'   => strtok($text, "\n"),
             'post_content' => '<p>'.preg_replace('/^.+\n/', '', $text).'</p>',
-            'post_status' => 'publish',
-            'post_author' => 1,
-            'post_type' => 'post'
+            'post_status'  => 'publish',
+            'post_author'  => 1,
+            'post_type'    => 'post',
         ];
         wp_insert_post($new_post);
-    } elseif(isset($message['photo']) && isset($message['caption'])) {
+    } elseif (isset($message['photo']) && isset($message['caption'])) {
         $file_id = $message['photo'][count($message['photo']) - 1]['file_id'];
         $file_path = teleRequest('getFile', ['file_id' => $file_id])['file_path'];
         $file_url = 'https://api.telegram.org/file/bot'.BOT_TOKEN.'/'.$file_path;
@@ -41,21 +41,21 @@ if(isset($update['channel_post'])) {
         curl_download_file($file_url, $image_path);
         $text = $message['caption'];
         $new_post = [
-            'post_title' => strtok($text, "\n"),
+            'post_title'   => strtok($text, "\n"),
             'post_content' => '<p>'.preg_replace('/^.+\n/', '', $text).'</p>',
-            'post_status' => 'publish',
-            'post_author' => 1,
-            'post_type' => 'post'
+            'post_status'  => 'publish',
+            'post_author'  => 1,
+            'post_type'    => 'post',
         ];
         $post_id = wp_insert_post($new_post);
-        $upload = wp_upload_bits($image_path , null, file_get_contents($image_path, FILE_USE_INCLUDE_PATH));
+        $upload = wp_upload_bits($image_path, null, file_get_contents($image_path, FILE_USE_INCLUDE_PATH));
         $imageFile = $upload['file'];
         $wpFileType = wp_check_filetype($imageFile, null);
         $attachment = [
             'post_mime_type' => $wpFileType['type'],
-            'post_title' => sanitize_file_name($imageFile),
-            'post_content' => '',
-            'post_status' => 'inherit'
+            'post_title'     => sanitize_file_name($imageFile),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
         ];
         $attachmentId = wp_insert_attachment($attachment, $imageFile, $post_id);
         $attachmentData = wp_generate_attachment_metadata($attachmentId, $imageFile);
